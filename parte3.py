@@ -1,5 +1,6 @@
 # importing element tree
 # under the alias of ET
+from ast import For
 import xml.etree.ElementTree as ET
 import numpy as np
 
@@ -24,16 +25,6 @@ j = 0
 print(root[i][0][0][0][0].attrib)
 print(root[i][0][0][0][0].text)
 
-# normals
-print("\n")
-print(root[i][0][0][1][0].attrib)
-print(root[i][0][0][1][0].text)
-
-# textura
-print("\n")
-print(root[i][0][0][2][0].attrib)
-# print(root[i][0][0][2][0].text)
-
 # colors
 print("\n")
 print(root[i][0][0][3][0].attrib)
@@ -44,8 +35,46 @@ print("\n")
 print(root[i][0][0][5][0].attrib)
 # print(root[i][0][0][5][4].text)
 
+def getTriCoordAndColor(triangles, root):
+    #Preencher a lista triangles com objetos Triangle
+    pass
+
 
 class Triangle:
+    #Classe Triangle 
     def __init__(self):
-        self.vertex
+        self.vertex_coord_ind
+        self.vertex_color_ind
+        self.vertex_coord
+        self.vertex_color
+        self.normal
+        self.area
+        self.centroid
+        self.rhoCoef
+
+    
+
+    def calcNormal(self):
+        #Calcula o vetor normal de si mesmo
+        pass
+
+    def calcArea(self):
+        #Calcula a area de si mesmo
+        pass
+
+    def calcCentroid(self):
+        #Calcula o centroide de si mesmo
+        pass
+
+    def calcFactorForm(self):
+
+        pass
+
+    
+
+
+# nao fazer mais matriz
+
+
+    
 
