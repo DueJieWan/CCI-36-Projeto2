@@ -18,23 +18,31 @@ root = tree.getroot()
 # its memory location
 # print(root)
 
-library_geometries_index = 6
+library_geometries_index = 5
 mesh_index = 0
 triangles_wrapper_info_index = 5
 triangles_wrapper_info_indexes_index = 4
 
 class Triangle:
     #Classe Triangle 
-    def __init__(self, geometric_index, offset, indexes, geometric_parent_name, vertex, normal, textcoord, color):
+    def __init__(self, geometric_parent_name, vertex, normal, textcoord, color):
         self.geometric_parent_name = geometric_parent_name
         self.vertex = vertex
         self.normal = normal
         self.textcoord = textcoord
         self.color = color
+        #self.rho = self.calcRho()
+        #self.centroid = self.calcCentroid()
         print(vertex)
-        print(normal)
-        print(textcoord)
-        print(color)
+        # print(normal)
+        # print(textcoord)
+        # print(color)
+
+    def calcRho(self):
+        return sum(self.color) / len(self.color)
+
+    def calcCentroid(self):
+        x = self.vertex
         
     def calcNormal(self):
         #Calcula o vetor normal de si mesmo
@@ -42,10 +50,6 @@ class Triangle:
 
     def calcArea(self):
         #Calcula a area de si mesmo
-        pass
-
-    def calcCentroid(self):
-        #Calcula o centroide de si mesmo
         pass
 
     def calcFactorForm(self):
@@ -76,12 +80,28 @@ for i in range(0, number_of_geometrics):
         textcoord_indexes = [int(indexes[offset+2]), int(indexes[offset+6]), int(indexes[offset+10])]
         color_indexes = [int(indexes[offset+3]), int(indexes[offset+7]), int(indexes[offset+11])]
 
-        vertex = [float(vertex_float_array[vertex_indexes[0]]), float(vertex_float_array[vertex_indexes[1]]), float(vertex_float_array[vertex_indexes[2]])]
-        normal = [float(normal_float_array[normal_indexes[0]]), float(normal_float_array[normal_indexes[1]]), float(normal_float_array[normal_indexes[2]])]
-        textcoord = [float(textcoord_float_array[textcoord_indexes[0]]), float(textcoord_float_array[textcoord_indexes[1]]), float(textcoord_float_array[textcoord_indexes[2]])]
-        color = [float(color_float_array[color_indexes[0]]), float(color_float_array[color_indexes[1]]), float(color_float_array[color_indexes[2]])]
+        vertex = [
+            [float(vertex_float_array[vertex_indexes[0]*3]), float(vertex_float_array[vertex_indexes[0]*3+1]), float(vertex_float_array[vertex_indexes[0]*3+2])],
+            [float(vertex_float_array[vertex_indexes[1]*3]), float(vertex_float_array[vertex_indexes[1]*3+1]), float(vertex_float_array[vertex_indexes[1]*3+2])],
+            [float(vertex_float_array[vertex_indexes[2]*3]), float(vertex_float_array[vertex_indexes[2]*3+1]), float(vertex_float_array[vertex_indexes[2]*3+2])]
+        ]
+        normal = [
+            [float(normal_float_array[normal_indexes[0]*3]), float(normal_float_array[normal_indexes[0]*3+1]), float(normal_float_array[normal_indexes[0]*3+2])],
+            [float(normal_float_array[normal_indexes[1]*3]), float(normal_float_array[normal_indexes[1]*3+1]), float(normal_float_array[normal_indexes[1]*3+2])],
+            [float(normal_float_array[normal_indexes[2]*3]), float(normal_float_array[normal_indexes[2]*3+1]), float(normal_float_array[normal_indexes[2]*3+2])]
+        ]
+        textcoord = [
+            [float(textcoord_float_array[textcoord_indexes[0]*2]), float(textcoord_float_array[textcoord_indexes[0]*2+1])],
+            [float(textcoord_float_array[textcoord_indexes[1]*2]), float(textcoord_float_array[textcoord_indexes[1]*2+1])],
+            [float(textcoord_float_array[textcoord_indexes[2]*2]), float(textcoord_float_array[textcoord_indexes[2]*2+1])]
+        ]
+        color = [
+            [float(color_float_array[color_indexes[0]*4]), float(color_float_array[color_indexes[0]*4+1]), float(color_float_array[color_indexes[0]*4+2]), float(color_float_array[color_indexes[0]*4+3])],
+            [float(color_float_array[color_indexes[1]*4]), float(color_float_array[color_indexes[1]*4+1]), float(color_float_array[color_indexes[1]*4+2]), float(color_float_array[color_indexes[1]*4+3])],
+            [float(color_float_array[color_indexes[2]*4]), float(color_float_array[color_indexes[2]*4+1]), float(color_float_array[color_indexes[2]*4+2]), float(color_float_array[color_indexes[2]*4+3])]
+        ]
 
-        triangle = Triangle(geometric_index, offset, indexes, geometric_parent_name, vertex, normal, textcoord, color)
+        triangle = Triangle(geometric_parent_name, vertex, normal, textcoord, color)
         offset += 12
 
     geometric_index += 1
