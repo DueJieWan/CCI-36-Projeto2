@@ -31,29 +31,37 @@ class Triangle:
         self.normal = normal
         self.textcoord = textcoord
         self.color = color
-        #self.rho = self.calcRho()
-        #self.centroid = self.calcCentroid()
-        print(vertex)
+        self.rho = self.calcRho()
+        self.centroid = self.calcCentroid()
+        self.area = self.calcArea()
+        print(self.area)
+        # print(vertex)
         # print(normal)
         # print(textcoord)
         # print(color)
 
     def calcRho(self):
-        return sum(self.color) / len(self.color)
+        return (sum(self.color[0]) + sum(self.color[1]) + sum(self.color[2])) / 9
 
     def calcCentroid(self):
-        x = self.vertex
-        
-    def calcNormal(self):
-        #Calcula o vetor normal de si mesmo
-        pass
+        x = (self.vertex[0][0] + self.vertex[1][0] + self.vertex[2][0]) / 3
+        y = (self.vertex[0][1] + self.vertex[1][1] + self.vertex[2][1]) / 3
+        z = (self.vertex[0][2] + self.vertex[1][2] + self.vertex[2][2]) / 3
+        return [x, y, z]
 
     def calcArea(self):
-        #Calcula a area de si mesmo
-        pass
+        a = np.sqrt((self.vertex[0][0] - self.vertex[1][0])**2 + (self.vertex[0][1] - self.vertex[1][1])**2 + (self.vertex[0][2] - self.vertex[1][2])**2)
+        b = np.sqrt((self.vertex[0][0] - self.vertex[2][0])**2 + (self.vertex[0][1] - self.vertex[2][1])**2 + (self.vertex[0][2] - self.vertex[2][2])**2)
+        c = np.sqrt((self.vertex[1][0] - self.vertex[2][0])**2 + (self.vertex[1][1] - self.vertex[2][1])**2 + (self.vertex[1][2] - self.vertex[2][2])**2)
+        s = (a + b + c) / 2  # semiperimeter
+        return np.sqrt(s*(s-a)*(s-b)*(s-c))
 
     def calcFactorForm(self):
 
+        pass
+
+    def calcNormal(self):
+        #Calcula o vetor normal de si mesmo
         pass
 
 
