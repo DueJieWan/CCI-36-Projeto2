@@ -34,14 +34,18 @@ class Triangle:
         self.rho = self.calcRho()
         self.centroid = self.calcCentroid()
         self.area = self.calcArea()
-        print(self.area)
+        # print(self.area)
         # print(vertex)
         # print(normal)
         # print(textcoord)
         # print(color)
 
     def calcRho(self):
-        return (sum(self.color[0]) + sum(self.color[1]) + sum(self.color[2])) / 9
+        R = (self.color[0][0] + self.color[1][0] + self.color[2][0]) / 3
+        G = (self.color[0][1] + self.color[1][1] + self.color[2][1]) / 3
+        B = (self.color[0][2] + self.color[1][2] + self.color[2][2]) / 3
+        A = (self.color[0][3] + self.color[1][3] + self.color[2][3]) / 3
+        return [R, G, B, A]
 
     def calcCentroid(self):
         x = (self.vertex[0][0] + self.vertex[1][0] + self.vertex[2][0]) / 3
