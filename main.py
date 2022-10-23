@@ -23,12 +23,11 @@ mesh_index = 0
 triangles_wrapper_info_index = 5
 triangles_wrapper_info_indexes_index = 4
 
-light_source_coordinates = [1,1,1] # alterar
+light_source_coord = [0.5,0.5,0.5] # alterar
 light_source_rgb = [255, 255, 255] 
 
 class Triangle:
-    def __init__(self, geometric_parent_name, vertex, textcoord, color, identifier):
-        self.id = identifier
+    def __init__(self, geometric_parent_name, vertex, textcoord, color):
         self.geometric_parent_name = geometric_parent_name
         self.vertex = vertex
         self.textcoord = textcoord
@@ -53,11 +52,7 @@ class Triangle:
         return [x, y, z]
 
     def calcArea(self):
-        a = np.sqrt((self.vertex[0][0] - self.vertex[1][0])**2 + (self.vertex[0][1] - self.vertex[1][1])**2 + (self.vertex[0][2] - self.vertex[1][2])**2)
-        b = np.sqrt((self.vertex[0][0] - self.vertex[2][0])**2 + (self.vertex[0][1] - self.vertex[2][1])**2 + (self.vertex[0][2] - self.vertex[2][2])**2)
-        c = np.sqrt((self.vertex[1][0] - self.vertex[2][0])**2 + (self.vertex[1][1] - self.vertex[2][1])**2 + (self.vertex[1][2] - self.vertex[2][2])**2)
-        s = (a + b + c) / 2  # semiperimeter
-        return np.sqrt(s*(s-a)*(s-b)*(s-c))
+        return self.areaOfTriangle(self.vertex[0], self.vertex[1], self.vertex[2])
 
     def calcNormal(self):
         vertex_1 = self.vertex[0]
@@ -70,18 +65,66 @@ class Triangle:
         normal_z = v[0]*u[1] - v[1]*u[0]
         return [normal_x, normal_y, normal_z]
 
-    def updateRadiance(self, light_source_coordinates):
-        scalar_product = self.normal[0]*light_source_coordinates[0] + self.normal[1]*light_source_coordinates[1] + self.normal[2]*light_source_coordinates[2]
-        normal_module = np.sqrt(normal[0]**2 + normal[1]**2 + normal[2]**2)
-        light_source_module = np.sqrt(light_source[0]**2 + light_source[1]**2 + light_source[2]**2)
+    def isThereInterceptionOfAnotherObject(self, light_source_coord, another_triangle):
+        nx = another_triangle.normal[0]
+        ny = another_triangle.normal[1]
+        nz = another_triangle.normal[2]
+        ux = light_source_coord[0]        
+        uy = light_source_coord[1]        
+        uz = light_source_coord[2]        
+        vx = self.centroid[0]        
+        vy = self.centroid[1]        
+        vz = self.centroid[2]
+        vertex_another_triangle_1 = another_triangle.vertex[0]
+        vertex_another_triangle_2 = another_triangle.vertex[1]
+        vertex_another_triangle_3 = another_triangle.vertex[2]
+        px = vertex_another_triangle_1[0]
+        py = vertex_another_triangle_1[1]       
+        pz = vertex_another_triangle_1[2]
+        numerator = - nx*(ux-px) + ny*(uy-py) + nz*(uz-pz)
+        denominator = nx*(vx-ux) + ny*(vy-uy) + nz*(vz-uz)
+
+        if denominator == 0:
+            return True
+
+        alfa = numerator / denominator
+        interception_plane_point = [ux+alfa*(vx-ux), uy+alfa*(vy-uy), uz+alfa*(vz-uz)]
+        ipx = interception_plane_point[0]
+        ipy = interception_plane_point[1]
+        ipz = interception_plane_point[2]
+
+        # https://www.geeksforgeeks.org/check-whether-a-given-point-lies-inside-a-triangle-or-not/
+        area_triangle_1 = self.areaOfTriangle(vertex_another_triangle_1, vertex_another_triangle_2, interception_plane_point)
+        area_triangle_2 = self.areaOfTriangle(vertex_another_triangle_2, vertex_another_triangle_3, interception_plane_point)
+        area_triangle_3 = self.areaOfTriangle(vertex_another_triangle_3, vertex_another_triangle_1, interception_plane_point)
+
+        if self.area < area_triangle_1 + area_triangle_2 + area_triangle_3:
+            return False
+        
+        return True
+
+    def updateRadiance(self, light_source_coord):
+        self.radiance = self.calcRadiance(light_source_coord)
+
+    def calcRadiance(self, light_source_coord):
+        scalar_product = self.normal[0]*light_source_coord[0] + self.normal[1]*light_source_coord[1] + self.normal[2]*light_source_coord[2]
+        normal_module = np.sqrt(self.normal[0]**2 + self.normal[1]**2 + self.normal[2]**2)
+        light_source_module = np.sqrt(light_source_coord[0]**2 + light_source_coord[1]**2 + light_source_coord[2]**2)
         foreshortening = np.absolute(scalar_product / (normal_module * light_source_module))
-        distance = np.sqrt((self.centroid[0] - light_source_coordinates[0])**2 + (self.centroid[1] - light_source_coordinates[1])**2 + (self.centroid[2] - light_source_coordinates[2])**2)
-        self.radiance = foreshortening / (np.pi * distance**2)
+        distance = np.sqrt((self.centroid[0] - light_source_coord[0])**2 + (self.centroid[1] - light_source_coord[1])**2 + (self.centroid[2] - light_source_coord[2])**2)
+        return foreshortening / (np.pi * distance**2)
+
+    def areaOfTriangle(self, vertex_1, vertex_2, vertex_3):
+        a = np.sqrt((vertex_1[0] - vertex_2[0])**2 + (vertex_1[1] - vertex_2[1])**2 + (vertex_1[2] - vertex_2[2])**2)
+        b = np.sqrt((vertex_1[0] - vertex_3[0])**2 + (vertex_1[1] - vertex_3[1])**2 + (vertex_1[2] - vertex_3[2])**2)
+        c = np.sqrt((vertex_2[0] - vertex_3[0])**2 + (vertex_2[1] - vertex_3[1])**2 + (vertex_2[2] - vertex_3[2])**2)
+        s = (a + b + c) / 2  # semiperimeter
+        return np.sqrt(s*(s-a)*(s-b)*(s-c))
+
 
 triangles_list = []
 number_of_geometrics = len(root[library_geometries_index])
 geometric_index = 0
-identifier = 0
 for i in range(0, number_of_geometrics):
     geometric = root[library_geometries_index][geometric_index]
     wrapper = geometric[mesh_index]
@@ -124,12 +167,22 @@ for i in range(0, number_of_geometrics):
             [float(color_float_array[color_indexes[2]*4]), float(color_float_array[color_indexes[2]*4+1]), float(color_float_array[color_indexes[2]*4+2]), float(color_float_array[color_indexes[2]*4+3])]
         ]
 
-        triangle = Triangle(geometric_parent_name, vertex, textcoord, color, identifier)
+        triangle = Triangle(geometric_parent_name, vertex, textcoord, color)
         offset += 12
-        identifier += 1
         triangles_list.append(triangle)
 
     geometric_index += 1
 
-print(len(triangles_list))
+number_of_triangles = len(triangles_list)
+for i in range(0, number_of_triangles):
+    interception = False
+    for j in range(0, number_of_triangles):
+        if i != j:
+            if triangles_list[i].isThereInterceptionOfAnotherObject(light_source_coord, triangles_list[j]) == True:
+                interception = True
+                break
+    if interception == False:
+        triangles_list[i].updateRadiance(light_source_coord)
+
+    print(triangles_list[i].radiance)
 
