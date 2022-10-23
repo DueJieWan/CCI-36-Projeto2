@@ -23,22 +23,21 @@ mesh_index = 0
 triangles_wrapper_info_index = 5
 triangles_wrapper_info_indexes_index = 4
 
+light_source_coordinates = [1,1,1] # alterar
+light_source_rgb = [255, 255, 255] 
+
 class Triangle:
-    #Classe Triangle 
-    def __init__(self, geometric_parent_name, vertex, normal, textcoord, color):
+    def __init__(self, geometric_parent_name, vertex, textcoord, color, identifier):
+        self.id = identifier
         self.geometric_parent_name = geometric_parent_name
         self.vertex = vertex
-        self.normal = normal
         self.textcoord = textcoord
         self.color = color
+        self.normal = self.calcNormal()
         self.rho = self.calcRho()
         self.centroid = self.calcCentroid()
         self.area = self.calcArea()
-        # print(self.area)
-        # print(vertex)
-        # print(normal)
-        # print(textcoord)
-        # print(color)
+        self.radiance = 0
 
     def calcRho(self):
         R = (self.color[0][0] + self.color[1][0] + self.color[2][0]) / 3
@@ -60,17 +59,29 @@ class Triangle:
         s = (a + b + c) / 2  # semiperimeter
         return np.sqrt(s*(s-a)*(s-b)*(s-c))
 
-    def calcFactorForm(self):
-
-        pass
-
     def calcNormal(self):
-        #Calcula o vetor normal de si mesmo
-        pass
+        vertex_1 = self.vertex[0]
+        vertex_2 = self.vertex[1]
+        vertex_3 = self.vertex[2]
+        v = [vertex_2[0] - vertex_1[0], vertex_2[1] - vertex_1[1], vertex_2[2] - vertex_1[2]]
+        u = [vertex_3[0] - vertex_2[0], vertex_3[1] - vertex_2[1], vertex_3[2] - vertex_2[2]]
+        normal_x = v[1]*u[2] - v[2]*u[1]
+        normal_y = v[2]*u[0] - v[0]*u[2]
+        normal_z = v[0]*u[1] - v[1]*u[0]
+        return [normal_x, normal_y, normal_z]
 
+    def updateRadiance(self, light_source_coordinates):
+        scalar_product = self.normal[0]*light_source_coordinates[0] + self.normal[1]*light_source_coordinates[1] + self.normal[2]*light_source_coordinates[2]
+        normal_module = np.sqrt(normal[0]**2 + normal[1]**2 + normal[2]**2)
+        light_source_module = np.sqrt(light_source[0]**2 + light_source[1]**2 + light_source[2]**2)
+        foreshortening = np.absolute(scalar_product / (normal_module * light_source_module))
+        distance = np.sqrt((self.centroid[0] - light_source_coordinates[0])**2 + (self.centroid[1] - light_source_coordinates[1])**2 + (self.centroid[2] - light_source_coordinates[2])**2)
+        self.radiance = foreshortening / (np.pi * distance**2)
 
+triangles_list = []
 number_of_geometrics = len(root[library_geometries_index])
 geometric_index = 0
+identifier = 0
 for i in range(0, number_of_geometrics):
     geometric = root[library_geometries_index][geometric_index]
     wrapper = geometric[mesh_index]
@@ -113,11 +124,12 @@ for i in range(0, number_of_geometrics):
             [float(color_float_array[color_indexes[2]*4]), float(color_float_array[color_indexes[2]*4+1]), float(color_float_array[color_indexes[2]*4+2]), float(color_float_array[color_indexes[2]*4+3])]
         ]
 
-        triangle = Triangle(geometric_parent_name, vertex, normal, textcoord, color)
+        triangle = Triangle(geometric_parent_name, vertex, textcoord, color, identifier)
         offset += 12
+        identifier += 1
+        triangles_list.append(triangle)
 
     geometric_index += 1
 
-
-    
+print(len(triangles_list))
 
