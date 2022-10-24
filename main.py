@@ -18,13 +18,13 @@ root = tree.getroot()
 # its memory location
 # print(root)
 
-library_geometries_index = 5
+library_geometries_index = 6
 mesh_index = 0
 triangles_wrapper_info_index = 5
 triangles_wrapper_info_indexes_index = 4
 
-light_source_coord = [0.5,0.5,0.5] # alterar
-light_source_rgb = [255, 255, 255] 
+light_source_coord = [-1.169325, -2.531484, 3.346791]
+light_source_rgb = [255, 255, 255]
 
 class Triangle:
     def __init__(self, geometric_parent_name, vertex, textcoord, color):
@@ -129,7 +129,7 @@ for i in range(0, number_of_geometrics):
     geometric = root[library_geometries_index][geometric_index]
     wrapper = geometric[mesh_index]
     geometric_parent_name = geometric.attrib['name']
-    print(geometric_parent_name)
+    # print(geometric_parent_name)
     triangles =  wrapper[triangles_wrapper_info_index]
     indexes = triangles[triangles_wrapper_info_indexes_index].text.split(" ")
     indexes_length = len(indexes)
