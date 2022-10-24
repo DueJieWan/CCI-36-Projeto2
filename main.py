@@ -7,7 +7,7 @@ import numpy as np
 # Passing the path of the
 # xml document to enable the
 # parsing process
-tree = ET.parse('teste1.dae')
+tree = ET.parse('teste1_modified.dae')
 
 # getting the parent tag of
 # the xml document
