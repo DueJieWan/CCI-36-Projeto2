@@ -24,8 +24,8 @@ mesh_index = 0
 triangles_wrapper_info_index = 5
 triangles_wrapper_info_indexes_index = 4
 
-light_power = [1, 1, 1]
-light_source_coord = [-1.169325/3, -2.531484/3, 3.346791/3]
+light_power = [1000, 1000, 1000]
+light_source_coord = [-1.169325, -2.531484, 3.346791] # (-1.169325, -2.531484, 3.346791) -0.3584217, 13.080434, 1.630428
 light_source_rgb = [255, 255, 255]
 
 class Triangle:
@@ -107,7 +107,6 @@ class Triangle:
 
     def updateRadiance(self, light_source_coord):
         self.radiance = self.calcRadiance(light_source_coord)
-        print(self.radiance)
 
     def calcRadiance(self, light_source_coord):
         scalar_product = self.normal[0]*light_source_coord[0] + self.normal[1]*light_source_coord[1] + self.normal[2]*light_source_coord[2]
@@ -214,6 +213,16 @@ for i in range(0, number_of_geometrics):
         B_R = 0 + triangle.rho[0] * triangle.radiance * light_power_R
         B_G = 0 + triangle.rho[1] * triangle.radiance * light_power_G
         B_B = 0 + triangle.rho[2] * triangle.radiance * light_power_B
+
+        if B_R > 1:
+            B_R = 1
+
+        if B_G > 1:
+            B_G = 1
+
+        if B_G > 1:
+            B_G = 1
+
         aux[color_indexes[0]*4] = B_R
         aux[color_indexes[1]*4] = B_R
         aux[color_indexes[2]*4] = B_R
