@@ -3,11 +3,12 @@
 from ast import For
 import xml.etree.ElementTree as ET
 import numpy as np
+import os
 
 # Passing the path of the
 # xml document to enable the
 # parsing process
-tree = ET.parse('teste1_modified.dae')
+tree = ET.parse('teste1.dae')
 
 # getting the parent tag of
 # the xml document
@@ -23,7 +24,8 @@ mesh_index = 0
 triangles_wrapper_info_index = 5
 triangles_wrapper_info_indexes_index = 4
 
-light_source_coord = [-1.169325, -2.531484, 3.346791]
+light_power = [1, 1, 1]
+light_source_coord = [-1.169325/3, -2.531484/3, 3.346791/3]
 light_source_rgb = [255, 255, 255]
 
 class Triangle:
@@ -105,6 +107,7 @@ class Triangle:
 
     def updateRadiance(self, light_source_coord):
         self.radiance = self.calcRadiance(light_source_coord)
+        print(self.radiance)
 
     def calcRadiance(self, light_source_coord):
         scalar_product = self.normal[0]*light_source_coord[0] + self.normal[1]*light_source_coord[1] + self.normal[2]*light_source_coord[2]
@@ -121,7 +124,7 @@ class Triangle:
         s = (a + b + c) / 2  # semiperimeter
         return np.sqrt(s*(s-a)*(s-b)*(s-c))
 
-
+# getting vertex, normal, textcoord and color
 triangles_list = []
 number_of_geometrics = len(root[library_geometries_index])
 geometric_index = 0
@@ -173,6 +176,7 @@ for i in range(0, number_of_geometrics):
 
     geometric_index += 1
 
+# getting radiance
 number_of_triangles = len(triangles_list)
 for i in range(0, number_of_triangles):
     interception = False
@@ -184,5 +188,51 @@ for i in range(0, number_of_triangles):
     if interception == False:
         triangles_list[i].updateRadiance(light_source_coord)
 
-    print(triangles_list[i].radiance)
+    # print(triangles_list[i].radiance)
+
+
+# replacing colors
+light_power_R = light_power[0]
+light_power_G = light_power[1]
+light_power_B = light_power[2]
+geometric_index = 0
+count_triangle = 0
+for i in range(0, number_of_geometrics):
+    geometric = root[library_geometries_index][geometric_index]
+    wrapper = geometric[mesh_index]
+    color_float_array = wrapper[3][0]
+    aux = color_float_array.text.split(" ")
+
+    triangles =  wrapper[triangles_wrapper_info_index]
+    indexes = triangles[triangles_wrapper_info_indexes_index].text.split(" ")
+    indexes_length = len(indexes)
+    offset = 0
+
+    for j in range(0, indexes_length // 12):
+        triangle = triangles_list[count_triangle]
+        color_indexes = [int(indexes[offset+3]), int(indexes[offset+7]), int(indexes[offset+11])]
+        B_R = 0 + triangle.rho[0] * triangle.radiance * light_power_R
+        B_G = 0 + triangle.rho[1] * triangle.radiance * light_power_G
+        B_B = 0 + triangle.rho[2] * triangle.radiance * light_power_B
+        aux[color_indexes[0]*4] = B_R
+        aux[color_indexes[1]*4] = B_R
+        aux[color_indexes[2]*4] = B_R
+        aux[color_indexes[0]*4+1] = B_G
+        aux[color_indexes[1]*4+1] = B_G
+        aux[color_indexes[2]*4+1] = B_G
+        aux[color_indexes[0]*4+2] = B_B
+        aux[color_indexes[1]*4+2] = B_B
+        aux[color_indexes[2]*4+2] = B_B
+        offset += 12
+        count_triangle += 1
+
+    new_text = ""
+    for j in range(0, len(aux)):
+        new_text += str(aux[j]) + " "
+    color_float_array.text = new_text
+    geometric_index += 1
+
+modified_dae_file = ET.tostring(root).decode('utf-8').replace("ns0:", "").replace(":ns0", "").encode()
+with open("teste1_modified.dae", "wb") as f:
+    f.write(modified_dae_file)
 
