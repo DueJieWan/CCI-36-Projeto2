@@ -3,7 +3,7 @@
 from ast import For
 import xml.etree.ElementTree as ET
 import numpy as np
-import os
+import json 
 
 # Passing the path of the
 # xml document to enable the
@@ -14,24 +14,29 @@ tree = ET.parse('teste1.dae')
 # the xml document
 root = tree.getroot()
 
-# printing the root (parent) tag
-# of the xml document, along with
-# its memory location
-# print(root)
-
 library_geometries_index = 6
 mesh_index = 0
 triangles_wrapper_info_index = 5
 triangles_wrapper_info_indexes_index = 4
 
-light_power = [1000, 1000, 1000]
-light_source_coord = [-1.169325, -2.531484, 3.346791] # (-1.169325, -2.531484, 3.346791) -0.3584217, 13.080434, 1.630428
+light_power = [100, 100, 100]
+light_source_coord = [-1.16664 , -2.59608 , 3.23405] # (-1.169325, -2.531484, 3.346791) -0.3584217, 13.080434, 1.630428
 light_source_rgb = [255, 255, 255]
+count = 0
 
 class Triangle:
-    def __init__(self, geometric_parent_name, vertex, textcoord, color):
+    def __init__(self, geometric_parent_name, vertex, textcoord, color, scale, translation):
         self.geometric_parent_name = geometric_parent_name
         self.vertex = vertex
+        self.vertex[0][0] = (vertex[0][0] + translation[0]) * scale[0]
+        self.vertex[1][0] = (vertex[1][0] + translation[0]) * scale[0]
+        self.vertex[2][0] = (vertex[2][0] + translation[0]) * scale[0]
+        self.vertex[0][1] = (vertex[0][1] + translation[1]) * scale[1]
+        self.vertex[1][1] = (vertex[1][1] + translation[1]) * scale[1]
+        self.vertex[2][1] = (vertex[2][1] + translation[1]) * scale[1]
+        self.vertex[0][2] = (vertex[0][2] + translation[2]) * scale[2]
+        self.vertex[1][2] = (vertex[1][2] + translation[2]) * scale[2]
+        self.vertex[2][2] = (vertex[2][2] + translation[2]) * scale[2]
         self.textcoord = textcoord
         self.color = color
         self.normal = self.calcNormal()
@@ -80,27 +85,24 @@ class Triangle:
         vertex_another_triangle_1 = another_triangle.vertex[0]
         vertex_another_triangle_2 = another_triangle.vertex[1]
         vertex_another_triangle_3 = another_triangle.vertex[2]
-        px = vertex_another_triangle_1[0]
-        py = vertex_another_triangle_1[1]       
-        pz = vertex_another_triangle_1[2]
-        numerator = - nx*(ux-px) + ny*(uy-py) + nz*(uz-pz)
+        cx = another_triangle.centroid[0]
+        cy = another_triangle.centroid[1]       
+        cz = another_triangle.centroid[2] 
+        numerator = (nx*(ux-cx) + ny*(uy-cy) + nz*(uz-cz))
         denominator = nx*(vx-ux) + ny*(vy-uy) + nz*(vz-uz)
 
         if denominator == 0:
             return True
 
         alfa = numerator / denominator
-        interception_plane_point = [ux+alfa*(vx-ux), uy+alfa*(vy-uy), uz+alfa*(vz-uz)]
-        ipx = interception_plane_point[0]
-        ipy = interception_plane_point[1]
-        ipz = interception_plane_point[2]
+        interception_point = [ux+alfa*(vx-ux), uy+alfa*(vy-uy), uz+alfa*(vz-uz)]
 
         # https://www.geeksforgeeks.org/check-whether-a-given-point-lies-inside-a-triangle-or-not/
-        area_triangle_1 = self.areaOfTriangle(vertex_another_triangle_1, vertex_another_triangle_2, interception_plane_point)
-        area_triangle_2 = self.areaOfTriangle(vertex_another_triangle_2, vertex_another_triangle_3, interception_plane_point)
-        area_triangle_3 = self.areaOfTriangle(vertex_another_triangle_3, vertex_another_triangle_1, interception_plane_point)
+        area_triangle_1 = self.areaOfTriangle(vertex_another_triangle_1, vertex_another_triangle_2, interception_point)
+        area_triangle_2 = self.areaOfTriangle(vertex_another_triangle_2, vertex_another_triangle_3, interception_point)
+        area_triangle_3 = self.areaOfTriangle(vertex_another_triangle_3, vertex_another_triangle_1, interception_point)
 
-        if self.area < area_triangle_1 + area_triangle_2 + area_triangle_3:
+        if self.area <= area_triangle_1 + area_triangle_2 + area_triangle_3:
             return False
         
         return True
@@ -142,7 +144,7 @@ for i in range(0, number_of_geometrics):
     textcoord_float_array = wrapper[2][0].text.split(" ")
     color_float_array = wrapper[3][0].text.split(" ")
 
-    for i in range(0, indexes_length // 12):
+    for j in range(0, indexes_length // 12):
         vertex_indexes = [int(indexes[offset]), int(indexes[offset+4]), int(indexes[offset+8])]
         normal_indexes = [int(indexes[offset+1]), int(indexes[offset+5]), int(indexes[offset+9])]
         textcoord_indexes = [int(indexes[offset+2]), int(indexes[offset+6]), int(indexes[offset+10])]
@@ -169,7 +171,15 @@ for i in range(0, number_of_geometrics):
             [float(color_float_array[color_indexes[2]*4]), float(color_float_array[color_indexes[2]*4+1]), float(color_float_array[color_indexes[2]*4+2]), float(color_float_array[color_indexes[2]*4+3])]
         ]
 
-        triangle = Triangle(geometric_parent_name, vertex, textcoord, color)
+        scale = []
+        translation = []
+        with open('teste1.gltf', 'r') as file:
+            data = file.read().replace('\n', '')
+            gltf_json = json.loads(data)
+            scale = gltf_json["nodes"][i]["scale"]
+            translation = gltf_json["nodes"][i]["translation"]
+
+        triangle = Triangle(geometric_parent_name, vertex, textcoord, color, scale, translation)
         offset += 12
         triangles_list.append(triangle)
 
